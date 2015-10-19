@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tiles to Image</title>
+
+  </head>
+  <body bgcolor="grey">
+    <div>
+      <p>
+        This is a utility to make a png from a randomized arrangment of tiles from a tileset image, such as those you can find on <a href="http://opengameart.org/">OpenGameArt.org</a>.
+      </p>
+      <p>
+        The tile width and height are treated as the same across the entire image. You indicate which tiles out of the image you wish to use in the 'List of Tiles to Use' field, with each tile selected by giving its column & row values separated by a comma ",", and each tile entry separated by a "space" character, zero-indexed. Ie, to use the first two tiles from the upper-leftmost corner of the tileset, you would enter:
+      </p>
+      <p>
+        0,0 1,0
+      </p>
+      <p>
+        While to use the two left-most tiles from the top two rows of the tileset image, you would enter:
+      </p>
+      <p>
+        0,0 1,0 0,1 1,1
+      </p>
+
+      <p>
+        Repeating a entry will increase its likelihood of appearing.
+      </p>
+
+      <p>
+      Tile Width in Pixels: <input type="number" id="tile-width" value="16"><br>
+      Tile Height in Pixels: <input type="number" id="tile-height" value="16"><br>
+      Output Width in Tiles: <input type="number" id="output-width" value="8"><br>
+      Output Height in Tiles: <input type="number" id="output-height" value="8"><br>
+      List of Tiles to Use: <input type="text" id="tiles-to-use" value="0,0"><br>
+      Tileset Image: <input type="file" id="tileset" autofocus="true"><br>
+      </p>
+
+      <div id="output">
+        <p>Canvas Output:</p>
+        <canvas id="imageCanvas"></canvas>
+      </div>
+      <div>
+        <p>PNG Output:</p>
+        <img src="" id="output-image">
+      </div>
+    </div>
+    <script>
+      var imageLoader = document.getElementById("tileset");
+      imageLoader.addEventListener("change", handleImage, false);
+
+      function handleImage(e) {
+        var tileWidth = document.getElementById("tile-width").value || 16;
+        var tileHeight = document.getElementById('tile-height').value || 16;
+        var outputWidth = document.getElementById('output-width').value || 4;
+        var outputHeight = document.getElementById("output-height").value || 3;
+        var tilesToUse = document.getElementById("tiles-to-use").value.split(/\s/);
+        tilesToUse = tilesToUse.map(function(element) {
+          return element.split(",");
+        });
+
+        var canvas = document.getElementById("imageCanvas");
+        var ctx = canvas.getContext("2d");
+
+        ctx.canvas.width = tileWidth * outputWidth;
+        ctx.canvas.height = tileHeight * outputHeight;
+
+        // declared inside handleImage to make closure & get its vars
+        function drawTiles(img, tilesToUse) {
+          for (i = 0; i < outputHeight; i++) {
+            for (j = 0; j < outputWidth; j++) {
+              // pull random tile
+              var randomTile = tilesToUse[Math.floor(Math.random() * tilesToUse.length)];
+              console.log("curr randomTile: " + randomTile);
+              ctx.drawImage(img, randomTile[0] * tileWidth, randomTile[1] * tileHeight, tileWidth, tileHeight, j * tileWidth, i * tileHeight, tileWidth, tileHeight);
+            }
+          }
+          saveRender();
+        };
+
+        // render to png on page
+        function saveRender() {
+          console.log("dataurl: " + canvas.toDataURL());
+          // imgHolder.src = canvas.toDataURL(0, 0, canvas.width, canvas.height);
+          document.getElementById("output-image").src = canvas.toDataURL();
+        };
+
+
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          var img = new Image();
+          img.onload = function() {
+            drawTiles(img, tilesToUse);
+
+          //  ctx.drawImage(img, 0,0);
+          }
+          img.src = event.target.result;
+        }
+        reader.readAsDataURL(e.target.files[0]);
+      };
+
+
+
+    </script>
+
+
+  </body>
+</html>
