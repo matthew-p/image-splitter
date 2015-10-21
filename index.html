@@ -107,7 +107,6 @@
 
         };
 
-        // declared inside handleImage to make closure & get its vars
         function drawTiles(img, tilesToUse) {
           for (var i = 0; i < outputHeight; i++) {
             for (var j = 0; j < outputWidth; j++) {
@@ -123,7 +122,6 @@
         // render to png on page
         function saveRender() {
           console.log("dataurl: " + outputCanvas.toDataURL());
-          // imgHolder.src = canvas.toDataURL(0, 0, canvas.width, canvas.height);
           document.getElementById("output-image").src = outputCanvas.toDataURL();
         };
 
@@ -134,8 +132,6 @@
           img.onload = function() {
             drawInput(img, tilesToUse, inputCtx);
             drawTiles(img, tilesToUse);
-
-          //  ctx.drawImage(img, 0,0);
           }
           img.src = event.target.result;
         }
