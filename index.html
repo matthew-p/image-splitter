@@ -2,15 +2,35 @@
 <html>
   <head>
     <title>Tiles to Image</title>
+    <!-- Latest Bootstrap compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
 
   </head>
   <body bgcolor="grey">
-    <div>
+    <nav class="navbar navbar-inverse navbar-static-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Image Splitter</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
       <p>
-        This is a utility to make a png from a randomized arrangment of tiles from a tileset image, such as those you can find on <a href="http://opengameart.org/">OpenGameArt.org</a>.
+        This is a small utility to make a png from a randomized arrangment of 'tiles' (rectangular subportions) from a tileset image, such as those you can find on <a href="http://opengameart.org/">OpenGameArt.org</a>. It will display the source image with each selected tile outlined by a 2px highlight above the randomized output image. It updates whenever you change the slected tileset image.
       </p>
       <p>
-        The tile width and height are treated as the same across the entire image. You indicate which tiles out of the image you wish to use in the 'List of Tiles to Use' field, with each tile selected by giving its column & row values separated by a comma ",", and each tile entry separated by a "space" character, zero-indexed. Ie, to use the first two tiles from the upper-leftmost corner of the tileset, you would enter:
+        The tile width and height are treated as the same across the entire image. You indicate which tiles out of the image you wish to use in the 'List of Tiles to Use' field, with each tile selected by giving its column & row values separated by a comma ",", and each tile entry separated by a space " " character, zero-indexed. 'Column' and 'row' here refers to how many tile-widths over & tile-heights down to look from the starting upper left corner of the tileset image. Ie, to use the first two tiles from the upper-leftmost corner of the tileset, you would enter:
       </p>
       <p>
         0,0 1,0
@@ -23,7 +43,7 @@
       </p>
 
       <p>
-        Repeating a entry will increase its likelihood of appearing.
+        Repeating an entry in the list will increase its likelihood of appearing.
       </p>
 
       <p>
@@ -36,14 +56,21 @@
       </p>
 
       <div id="output">
-        <p>Canvas Output:</p>
-        <canvas id="imageCanvas"></canvas>
+        <p>Input Image Tiles:</p>
+        <canvas id="image-canvas"></canvas>
       </div>
       <div>
         <p>PNG Output:</p>
         <img src="" id="output-image">
       </div>
     </div>
+
+      <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+        <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
     <script>
       var imageLoader = document.getElementById("tileset");
       imageLoader.addEventListener("change", handleImage, false);
@@ -58,16 +85,32 @@
           return element.split(",");
         });
 
-        var canvas = document.getElementById("imageCanvas");
-        var ctx = canvas.getContext("2d");
+        var inputCanvas = document.getElementById("image-canvas");
+        var inputCtx = inputCanvas.getContext("2d");
+
+
+        var outputCanvas = document.createElement("canvas");
+        var ctx = outputCanvas.getContext("2d");
 
         ctx.canvas.width = tileWidth * outputWidth;
         ctx.canvas.height = tileHeight * outputHeight;
 
+        function drawInput(img, tilesToUse, inputCtx) {
+          inputCtx.canvas.width = img.width;
+          inputCtx.canvas.height = img.height;
+          inputCtx.drawImage(img, 0, 0);
+          inputCtx.lineWidth = 2;
+          inputCtx.strokeStyle = "rgb(255,0,0)";
+          for (var i = 0; i < tilesToUse.length; i++) {
+            inputCtx.strokeRect(tilesToUse[i][0] * tileWidth, tilesToUse[i][1] * tileHeight, tileWidth, tileHeight);
+          }
+
+        };
+
         // declared inside handleImage to make closure & get its vars
         function drawTiles(img, tilesToUse) {
-          for (i = 0; i < outputHeight; i++) {
-            for (j = 0; j < outputWidth; j++) {
+          for (var i = 0; i < outputHeight; i++) {
+            for (var j = 0; j < outputWidth; j++) {
               // pull random tile
               var randomTile = tilesToUse[Math.floor(Math.random() * tilesToUse.length)];
               console.log("curr randomTile: " + randomTile);
@@ -79,9 +122,9 @@
 
         // render to png on page
         function saveRender() {
-          console.log("dataurl: " + canvas.toDataURL());
+          console.log("dataurl: " + outputCanvas.toDataURL());
           // imgHolder.src = canvas.toDataURL(0, 0, canvas.width, canvas.height);
-          document.getElementById("output-image").src = canvas.toDataURL();
+          document.getElementById("output-image").src = outputCanvas.toDataURL();
         };
 
 
@@ -89,6 +132,7 @@
         reader.onload = function(event) {
           var img = new Image();
           img.onload = function() {
+            drawInput(img, tilesToUse, inputCtx);
             drawTiles(img, tilesToUse);
 
           //  ctx.drawImage(img, 0,0);
